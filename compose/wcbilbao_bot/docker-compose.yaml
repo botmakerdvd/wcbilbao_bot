@@ -1,0 +1,40 @@
+version: '3'
+services:
+    db_wcbilbaobot:
+        image: mariadb:10.5
+        container_name: db_wcbilbaobot
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            - MYSQL_DATABASE=$WCBILBAOBOT_MYSQL_DATABASE
+            - MYSQL_USER=$WCBILBAOBOT_MYSQL_USER
+            - MYSQL_PASSWORD=$WCBILBAOBOT_MYSQL_PASSWORD
+            - MYSQL_ROOT_PASSWORD=$WCBILBAOBOT_MYSQL_ROOT_PASSWORD
+        volumes:
+            - "/home/ubuntu/dockers/wcbilbao_bot/data/db/:/var/lib/mysql"
+        networks:
+          - wcbilbaobot
+          
+    wcbilbaobot_python:
+        depends_on:
+          - db_wcbilbaobot
+        build:
+            dockerfile: Dockerfile_telegrambot_python
+        image: telegrambot_python:0.0.1
+        container_name: wcbilbaobot_python
+        restart: unless-stopped
+        env_file: .env
+        environment:
+          - DB_HOST=db_WCBILBAOBOT
+          - DB_USER=$WCBILBAOBOT_MYSQL_USER
+          - DB_PASSWORD=$WCBILBAOBOT_MYSQL_PASSWORD
+          - DB_NAME=$WCBILBAOBOT_MYSQL_DATABASE
+          - API_TOKEN=$WCBILBAOBOT_API_TOKEN
+        volumes:
+            - "/home/ubuntu/dockers/wcbilbao_bot/data/handler:/code/"
+        networks:
+          - wcbilbaobot
+        command: python /code/wcbilbaobot_telegram.py
+
+networks:
+    wcbilbaobot:      
